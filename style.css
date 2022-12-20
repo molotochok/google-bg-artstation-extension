@@ -1,0 +1,23 @@
+#gws-output-pages-elements-homepage_additional_languages__als #SIvCob {
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+#gb {
+  background: none !important;
+}
+
+div[data-ogsr-up].gb_1d {
+  padding-left: 0;
+  border-radius: 4px;
+}
+
+.gbae__img {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  object-fit: cover;
+  z-index: -999;
+}
