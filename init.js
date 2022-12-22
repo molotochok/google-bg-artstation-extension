@@ -6,6 +6,15 @@
   const CLASS_PREFIX = 'gbae__';
 
   /**
+   * Verifies if the current page is the actual main Google Search Page.
+   */
+  const isCorrectPage = () => {
+    const mainContainer = document.getElementsByClassName('L3eUgb')[0];
+    const googleIcon = document.getElementsByClassName('lnXdpd')[0];
+    return mainContainer && googleIcon;
+  };
+
+  /**
    * After setting the background image the texts may become unreadable.
    * This function sets the background color for the containers that
    * include such texts to make them readable again.
@@ -19,14 +28,16 @@
     const OPACITY = '0.7';
 
     const $bottomRow = this.document.getElementsByClassName('c93Gbe')[0];
+    if (!$bottomRow) return;
+
     const bgColor = getComputedStyle($bottomRow).backgroundColor.slice(0, -1) + `, ${OPACITY})`;
     $bottomRow.style.backgroundColor = bgColor;
 
     const $languages = this.document.getElementById('SIvCob');
-    $languages.style.backgroundColor = bgColor;
+    if ($languages) $languages.style.backgroundColor = bgColor;
 
-    const topRow = this.document.querySelector('.o3j99.n1xJcf.Ne6nSd')
-    topRow.style.backgroundColor = bgColor;
+    const $topRow = this.document.querySelector('.o3j99.n1xJcf.Ne6nSd')
+    if ($topRow) $topRow.style.backgroundColor = bgColor;
   };
 
   const createBgImage = (data) => {
@@ -54,18 +65,16 @@
     $authorInfo.append($a);
 
     const $countryContainer = this.document.getElementsByClassName('uU7dJb')[0];
-    $countryContainer.append($authorInfo);
+    $countryContainer && $countryContainer.append($authorInfo);
   };
 
-  if (window.location.pathname !== '/') return;
+  if (!isCorrectPage()) return;
 
-  window.addEventListener('load', function () {
-    setBgColorsForContainers();
+  setBgColorsForContainers();
 
-    chrome.runtime.sendMessage({}, (response) => {
-      createBgImage(response);
-      createAuthorInfo(response);
-    });
+  chrome.runtime.sendMessage({}, (response) => {
+    createBgImage(response);
+    createAuthorInfo(response);
   });
 })();
 

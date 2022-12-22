@@ -2,7 +2,7 @@ function reloadPages() {
   chrome.tabs.query({}, (tabs) => {
     tabs.forEach((tab) => {
       const url = new URL(tab.url);
-      if (url.hostname.includes("www.google.") && url.pathname === '/') {
+      if (url.hostname.includes("www.google.")) {
         chrome.tabs.reload(tab.id);
       }
     });
