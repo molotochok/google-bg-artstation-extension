@@ -1,18 +1,46 @@
-(function () {
-  /**
-   * To make created css classes and ids unique
-   * Means: GoogleBgArtstationExtension
-   */
-  const CLASS_PREFIX = 'gbae__';
+setTimeout((async function(){
+  const isMainPage = [ "/", "/webhp" ].some(p => location.pathname == p);
+  const isSearchPage = location.pathname == "/search";
+  const isCorrectPage = [isMainPage,isSearchPage].some(b => !!b);
 
-  /**
-   * Verifies if the current page is the actual main Google Search Page.
-   */
-  const isCorrectPage = () => {
-    const mainContainer = document.getElementsByClassName('L3eUgb')[0];
-    const googleIcon = document.getElementsByClassName('lnXdpd')[0];
-    return mainContainer && googleIcon;
-  };
+  if (!isCorrectPage) return;
+
+  const waitForElement = async (selector) => {
+    const main = new Promise(resolve => {
+      const element = document.querySelector(selector);
+      if (element) return resolve(element);
+
+      const observer = new MutationObserver(_ => {
+        const element = document.querySelector(selector);
+        if (element) {
+          resolve(element);
+          observer.disconnect();
+        }
+      });
+
+      observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+      });
+    });
+    
+    let timer;
+    return Promise.race([
+      main,
+      new Promise((r, _rej) => timer = setTimeout(function() { r(null); }, 350))
+    ]).finally(() => clearTimeout(timer));
+  }
+
+  const body = await waitForElement("body");
+  if (!body) return;
+
+  const isDarkmodeEnabled = !!document.querySelector('meta[content="dark"]') 
+      || getComputedStyle(body).getPropertyValue('background-color') != "rgb(255, 255, 255)";
+
+  const createClass = (className) => {
+    // Means: GoogleBgArtstationExtension
+    return `gbae__${className}`;
+  }
 
   /**
    * After setting the background image the texts may become unreadable.
@@ -24,34 +52,63 @@
    * new one. The bottom row container has a background color and it
    * is used as a reference.
    */
-  const setBgColorsForContainers = () => {
+  const setBgColorsForContainers = async () => {
     const OPACITY = '0.7';
 
-    const $bottomRow = this.document.getElementsByClassName('c93Gbe')[0];
+    const $bottomRow = await waitForElement('.c93Gbe');
     if (!$bottomRow) return;
 
     const bgColor = getComputedStyle($bottomRow).backgroundColor.slice(0, -1) + `, ${OPACITY})`;
     $bottomRow.style.backgroundColor = bgColor;
 
-    const $languages = this.document.getElementById('SIvCob');
+    const $languages = await waitForElement('#SIvCob');
     if ($languages) $languages.style.backgroundColor = bgColor;
 
-    const $topRow = this.document.querySelector('.o3j99.n1xJcf.Ne6nSd')
+    const $topRow = await waitForElement('.o3j99.n1xJcf.Ne6nSd')
     if ($topRow) $topRow.style.backgroundColor = bgColor;
   };
 
   const createBgImage = (data) => {
     const image = new Image();
-    image.classList.add(CLASS_PREFIX + 'img');
-    image.src = data.assets[0].image_url;
+    image.classList.add(createClass('img'));
+
+    image.classList.add(isMainPage 
+        ? createClass("brightness-full")
+        : isSearchPage ? createClass("brightness-dark") : ""
+    );
+
+    image.src = data.base64;
     
-    this.document.body.prepend(image);
+    body.prepend(image);
   };
 
-  const createAuthorInfo = (data) => {
-    const CONTAINER_ID = CLASS_PREFIX + 'author-info';
+  const setDarkMode = async () => {
+    const sigContainer = await waitForElement("#YUIDDb");
 
-    let $authorInfo = this.document.getElementById(CONTAINER_ID);
+    let urlParams;
+    // For All other pages
+    if (sigContainer) {
+      urlParams = new URLSearchParams(sigContainer.getAttribute("data-spl"));
+    } 
+    // For Search Image Page
+    else {
+      const href = (await waitForElement(".EXjONc")).getAttribute("href");
+      urlParams = new URLSearchParams(href.substring(href.indexOf("?") + 1));
+    }
+    
+    chrome.runtime.sendMessage({
+        type: "setDarkMode", 
+        sig: urlParams.get("sig"), 
+        origin: location.origin
+      }, 
+      async (_) => window.location.reload()
+    );
+  };
+
+  const createAuthorInfo = async (data) => {
+    const CONTAINER_ID = createClass('author-info');
+
+    let $authorInfo = document.getElementById(CONTAINER_ID);
     if ($authorInfo) return;
 
     $authorInfo = document.createElement('div');
@@ -64,17 +121,18 @@
 
     $authorInfo.append($a);
 
-    const $countryContainer = this.document.getElementsByClassName('uU7dJb')[0];
+    const $countryContainer = await waitForElement('.uU7dJb');
     $countryContainer && $countryContainer.append($authorInfo);
   };
 
-  if (!isCorrectPage()) return;
+  if (!isDarkmodeEnabled) {
+    await setDarkMode();
+  }
 
-  setBgColorsForContainers();
-
-  chrome.runtime.sendMessage({}, (response) => {
+  chrome.runtime.sendMessage({}, async (response) => {
     createBgImage(response);
-    createAuthorInfo(response);
+    await createAuthorInfo(response);
   });
-})();
 
+  await setBgColorsForContainers();
+}), 50);
