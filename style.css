@@ -3,7 +3,7 @@
   border-radius: 4px;
 }
 
-#gb {
+#appbar, #gb, .jZWadf, .sfbg, .Ww4FFb, .s8GCU, .Lj9fsd {
   background: none !important;
 }
 
@@ -12,8 +12,16 @@ div[data-ogsr-up].gb_1d {
   border-radius: 4px;
 }
 
+.gbae__brightness-full {
+  filter: brightness(1);
+}
+
+.gbae__brightness-dark {
+  filter: brightness(0.3);
+}
+
 .gbae__img {
-  position: absolute;
+  position: fixed;
   width: 100vw;
   height: 100vh;
   left: 0;
