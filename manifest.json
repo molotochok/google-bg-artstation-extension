@@ -1,6 +1,6 @@
 {
   "name": "Google Background from ArtStation",
-  "description": "Sets the background in Google Search home page using arts from ArtStation.",
+  "description": "Sets the background in Google Search page using arts from ArtStation.",
   "version": "1.2",
   "manifest_version": 3,
   "background": {
