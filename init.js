@@ -77,7 +77,7 @@ setTimeout((async function(){
         : isSearchPage ? createClass("brightness-dark") : ""
     );
 
-    image.src = data.base64;
+    image.src = data.base64 || data.assets[0].image_url;
     
     body.prepend(image);
   };

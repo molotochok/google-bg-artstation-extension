@@ -51,7 +51,7 @@ const handleGetImageData = (sendResponse) => {
     if (cache && cache[STORAGE_KEY]) {
       sendResponse(cache[STORAGE_KEY]);
 
-      if (new Date() - new Date(cache[STORAGE_KEY]["timeStamp"]) > 5 * 60 * 1000) {
+      if (new Date() - new Date(cache[STORAGE_KEY]["timeStamp"] || null) > 5 * 60 * 1000) {
         getNewImage();
       }
     } else {
